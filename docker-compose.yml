@@ -3,3 +3,7 @@ include:
   - ./repos/shared_services/docker-compose.yml
   - ./repos/tides_pipe/docker-compose.yml
   - ./repos/tidestom/docker-compose.yml
+
+networks:
+  backend:
+    driver: bridge
