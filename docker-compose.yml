@@ -1,14 +1,18 @@
 name: tides-stack
 include:
-  - ./repos/shared_services/docker-compose.yml
-  - ./repos/tides_pipe/docker-compose.yml
-  - ./repos/tidestom/docker-compose.yml
+  - ./submodules/shared_services/docker-compose.yml
+  - ./submodules/tides_pipe/docker-compose.yaml
+  - ./submodules/tidestom/docker-compose.yml
 
 volumes:
-  snid_api_runs:
-  ngsf_api_runs:
-  media_volume:
+  snid_api_runs_1:
+    #external: true
+  ngsf_api_runs_1:
+    #external: true
+  media_volume_1:
+    #external: true
 
 networks:
   backend:
+    name: tides-stack_backend
     driver: bridge
