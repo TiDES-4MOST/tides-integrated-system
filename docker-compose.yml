@@ -4,6 +4,11 @@ include:
   - ./repos/tides_pipe/docker-compose.yml
   - ./repos/tidestom/docker-compose.yml
 
+volumes:
+  snid_api_runs:
+  ngsf_api_runs:
+  media_volume:
+
 networks:
   backend:
     driver: bridge
