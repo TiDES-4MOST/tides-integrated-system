@@ -1,6 +1,9 @@
 # tides-integrated-system
 Integration repo for deployed TiDES services
 
+## Repository Description
+There are two branches on the repository. ```main``` and ```dev```. ```main``` represents the production version and ```dev``` represents the development version. The submodules which are traced in in ```main``` call upon the production branches from each of the respective repo. In ```dev``` the submodules track the latest stable development branch. Because of the difference in the branches they are set to track there should be no need to ever merge these branches, unless changes to this README or the root ```docker-compose.yml``` takes place. In such a case ```dev``` should not be deleted.
+
 ## Maintence
 This repository will automatically update every 3 hours with changes to the submodules. If you need to update ahead of this schedule on your local clone then run the command:
 ```
