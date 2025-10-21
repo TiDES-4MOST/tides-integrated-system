@@ -12,7 +12,17 @@ git submodule update --remote --merge
 
 ## Development and Installation Instructions
 ### Development
-This repository should rarely need developed directly into as it brings together the component submodules of the TiDES pipeline and marshal into one place for deployment, thus it only contains git submodule references to this and a docker-compose.yml which calls the submodule compose files and sets up the shared network resources. In the unlikely event that you do need to develop on it create a branch called ```[your-user]-dev``` and pull request this into ```dev``` to merge your changes.
+This repository should rarely need developed directly into as it brings together the component submodules of the TiDES pipeline and marshal into one place for deployment, thus it only contains git submodule references to this and a docker-compose.yml which calls the submodule compose files and sets up the shared network resources. You will however need to create a branch of this repository if you require the entire stack to operate during your own development. In order to do this, after creating any branches in the submodules:
+
+1. Clone this repository
+   
+2. Create a branch called ```[your-user]-dev``` and swtich into it
+   
+3. Open ```.gitmodules``` and edit the branch name for the submodule(s) you are working on.
+   
+4. Run ```git submodule update --remote --merge```
+
+If you are only editing submodules you should not merge this branch of this clone when you are done, only the branches of the submodules. If you have edited ```docker-compose.yml``` in this repository then you _should_ merge that change, but not the changes to ```.gitmodules```.
 
 ### Installation
 To install the ```tides-integrated-system``` you should need to follow the below instructions:
