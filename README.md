@@ -2,7 +2,10 @@
 Integration repo for deployed TiDES services
 
 ## Maintence
-Currently there is no automatic tracking of the submodules and updates are not periodically pulled, be aware that the submodules are therefore not certain to be the most recent update of any submodule.
+This repository will automatically update every 3 hours with changes to the submodules. If you need to update ahead of this schedule on your local clone then run the command:
+```
+git submodule update --remote --merge
+```
 
 ## Development and Installation Instructions
 ### Development
