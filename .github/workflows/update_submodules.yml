@@ -2,80 +2,35 @@ name: Update Submodules
 
 permissions:
   contents: write
-  pull-requests: write
 
 on:
   schedule:
-    - cron: '0 */3 * * *' # every 3 hours
+    - cron: '0 0/3 * * *'
   workflow_dispatch:
 
 jobs:
   update:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        branch: [main, dev]
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Configure git
+      - name: Update submodules (main)
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          git submodule update --remote --merge
+          git add submodules
+          git commit -m "Update submodules (main)" || echo "No changes"
+          git push origin main
 
-      - name: Update submodules
-        id: update_submodules
+      - name: Update submodules (dev)
         run: |
-          CHANGED_FILE=$(mktemp)
-          git checkout ${{ matrix.branch }}
-          git submodule foreach --quiet '
-            echo "Updating $name..."
-            git fetch origin
-            git merge --ff-only origin/$(git rev-parse --abbrev-ref HEAD) || true
-            if ! git diff --quiet; then
-              git add .
-              echo 1 > $CHANGED_FILE
-            fi
-          '
-          if [ -f "$CHANGED_FILE" ]; then
-            git commit -m "Automated update of all submodules (${matrix.branch})" || echo "No changes to commit"
-            git push origin ${{ matrix.branch }}
-            echo "changed=1" >> $GITHUB_OUTPUT
-          else
-            echo "changed=0" >> $GITHUB_OUTPUT
-            echo "No submodule changes detected"
-          fi
-
-      - name: Create or update pull request
-        if: steps.update_submodules.outputs.changed == '1'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: auto/submodule-update-${{ matrix.branch }}
-          base: ${{ matrix.branch }}
-          title: Automated submodule update (${matrix.branch})
-          body: This PR updates all submodules automatically.
-          labels: automation
-          commit-message: Automated update of all submodules (${matrix.branch})
-          draft: false
-          auto-merge: true
-          merge-method: squash
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-
-      - name: Cleanup merged PR branches
-        run: |
-          for br in main dev; do
-            PR_MERGED=$(gh pr view auto/submodule-update-$br --json mergedAt -q '.mergedAt' || echo null)
-            if [ "$PR_MERGED" != "null" ] && [ -n "$PR_MERGED" ]; then
-              git push origin --delete auto/submodule-update-$br || true
-            fi
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git fetch origin dev
+          git checkout dev
+          git submodule update --remote --merge
+          git add submodules
+          git commit -m "Update submodules (dev)" || echo "No changes"
+          git push origin dev
