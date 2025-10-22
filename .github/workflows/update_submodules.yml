@@ -6,7 +6,7 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 0/3 * * *'  # every 3 hours
+    - cron: '0 0/3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -14,21 +14,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout repository and submodules
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
+      # Configure Git
       - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-      # --------- Update submodules on main ---------
-      - name: Update all submodules (main)
+      # Update submodules
+      - name: Update submodules
+        id: submodules
         run: |
-          git checkout -b auto/submodule-update-main || git checkout auto/submodule-update-main
-
           CHANGED=0
           git submodule foreach --quiet '
             echo "Updating $name..."
@@ -39,84 +40,33 @@ jobs:
               CHANGED=1
             fi
           '
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
 
-          if [ $CHANGED -eq 1 ]; then
-            git commit -m "Automated update of all submodules (main)"
-          else
-            echo "No submodule changes detected"
-            exit 0
-          fi
-
-          git push -u origin auto/submodule-update-main --force
-
-      - name: Create or update PR for main
+      # Create PR if changes detected
+      - name: Create Pull Request
+        if: steps.submodules.outputs.changed == '1'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: auto/submodule-update-main
           base: main
-          title: "Automated submodule update (main)"
-          body: "This PR updates all submodules automatically."
+          title: Automated submodule update (main)
+          body: This PR updates all submodules automatically.
+          commit-message: Automated update of all submodules (main)
           labels: automation
-          commit-message: "Automated update of all submodules (main)"
           draft: false
-          auto-merge: true
-          merge-method: squash
 
-      # --------- Update submodules on dev ---------
-      - name: Update all submodules (dev)
+      # Auto-merge PR if created
+      - name: Auto-merge PR
+        if: steps.submodules.outputs.changed == '1'
         run: |
-          git fetch origin dev
-          git checkout -b auto/submodule-update-dev origin/dev || git checkout auto/submodule-update-dev
+          gh pr merge auto/submodule-update-main --squash --auto --delete-branch || echo "No PR to merge"
 
-          CHANGED=0
-          git submodule foreach --quiet '
-            echo "Updating $name..."
-            git fetch origin
-            git merge --ff-only origin/$(git rev-parse --abbrev-ref HEAD) || true
-            if ! git diff --quiet; then
-              git add .
-              CHANGED=1
+      # Cleanup old branches if PR already merged
+      - name: Cleanup old branches
+        run: |
+          for BRANCH in auto/submodule-update-main auto/submodule-update-dev; do
+            if gh pr view $BRANCH --json mergedAt -q '.mergedAt' | grep -qv null; then
+              git push origin --delete $BRANCH || echo "Branch $BRANCH not found, skipping"
             fi
-          '
-
-          if [ $CHANGED -eq 1 ]; then
-            git commit -m "Automated update of all submodules (dev)"
-          else
-            echo "No submodule changes detected"
-            exit 0
-          fi
-
-          git push -u origin auto/submodule-update-dev --force
-
-      - name: Create or update PR for dev
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: auto/submodule-update-dev
-          base: dev
-          title: "Automated submodule update (dev)"
-          body: "This PR updates all submodules automatically."
-          labels: automation
-          commit-message: "Automated update of all submodules (dev)"
-          draft: false
-          auto-merge: true
-          merge-method: squash
-
-      # --------- Cleanup merged branches ---------
-      - name: Cleanup merged branches
-        if: always()
-        run: |
-          # Cleanup main
-          MAIN_PR_MERGED=$(gh pr view auto/submodule-update-main --json mergedAt -q '.mergedAt')
-          if [ "$MAIN_PR_MERGED" != "null" ] && [ -n "$MAIN_PR_MERGED" ]; then
-            git push origin --delete auto/submodule-update-main
-          fi
-
-          # Cleanup dev
-          DEV_PR_MERGED=$(gh pr view auto/submodule-update-dev --json mergedAt -q '.mergedAt')
-          if [ "$DEV_PR_MERGED" != "null" ] && [ -n "$DEV_PR_MERGED" ]; then
-            git push origin --delete auto/submodule-update-dev
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          done
