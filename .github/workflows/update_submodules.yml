@@ -13,6 +13,10 @@ jobs:
   update:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        branch: [main, dev]
+
     steps:
       # Checkout repository and submodules
       - uses: actions/checkout@v4
@@ -25,6 +29,10 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
+      # Switch to target branch
+      - name: Checkout branch
+        run: git checkout ${{ matrix.branch }}
 
       # Update submodules
       - name: Update submodules
@@ -48,11 +56,11 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: auto/submodule-update-main
-          base: main
-          title: Automated submodule update (main)
+          branch: auto/submodule-update-${{ matrix.branch }}
+          base: ${{ matrix.branch }}
+          title: Automated submodule update (${{ matrix.branch }})
           body: This PR updates all submodules automatically.
-          commit-message: Automated update of all submodules (main)
+          commit-message: Automated update of all submodules (${{ matrix.branch }})
           labels: automation
           draft: false
 
@@ -60,13 +68,12 @@ jobs:
       - name: Auto-merge PR
         if: steps.submodules.outputs.changed == '1'
         run: |
-          gh pr merge auto/submodule-update-main --squash --auto --delete-branch || echo "No PR to merge"
+          gh pr merge auto/submodule-update-${{ matrix.branch }} --squash --auto --delete-branch || echo "No PR to merge"
 
-      # Cleanup old branches if PR already merged
+      # Cleanup old auto-update branches
       - name: Cleanup old branches
         run: |
-          for BRANCH in auto/submodule-update-main auto/submodule-update-dev; do
-            if gh pr view $BRANCH --json mergedAt -q '.mergedAt' | grep -qv null; then
-              git push origin --delete $BRANCH || echo "Branch $BRANCH not found, skipping"
-            fi
-          done
+          AUTO_BRANCH=auto/submodule-update-${{ matrix.branch }}
+          if gh pr view $AUTO_BRANCH --json mergedAt -q '.mergedAt' | grep -qv null; then
+            git push origin --delete $AUTO_BRANCH || echo "Branch $AUTO_BRANCH not found, skipping"
+          fi
