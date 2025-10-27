@@ -11,6 +11,12 @@ volumes:
     #external: true
   media_volume_1:
     #external: true
+  spectra_volume:
+    #external: true
+  deliveries_volume:
+    #external: true
+  static_volume_1:
+    #external: true
 
 networks:
   backend:
