@@ -8,5 +8,5 @@
 	branch = dev-deploy
 [submodule "submodules/tidestom"]
 	path = submodules/tidestom
-	url = git@github.com:cjduffy/tidestom.git
-	branch = test_deploy_chris
+	url = git@github.com:TiDES-4MOST/tidestom.git
+	branch = hack-dev
