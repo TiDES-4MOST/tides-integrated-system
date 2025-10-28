@@ -6,10 +6,10 @@ services:
     command: >
       sh -c "
         echo 'Checking volumes' &&
-        mkdir -pv /spectra_volume/test_data &&
+        mkdir -pv /spectra_volume/test_data/sims &&
         mkdir -pv /static/plots &&
         echo 'Copying test data, if availible' &&
-        cp -ru /test_data_src/* /spectra_volume/test_data/ 2>/dev/null || true &&
+        cp -ru /test_data_src/* /spectra_volume/test_data/sims/ 2>/dev/null || true &&
         echo 'Directories Ready'
       "
     volumes:
