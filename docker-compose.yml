@@ -1,4 +1,32 @@
 name: tides-stack
+
+services:
+  volume-init:
+    image: busybox:latest
+    command: >
+      sh -c "
+        echo 'Checking volumes' &&
+        mkdir -pv /spectra_volume/test_data &&
+        mkdir -pv /static/plots &&
+        echo 'Copying test data, if availible' &&
+        cp -ru /test_data_src/* /spectra_volume/test_data/ 2>/dev/null || true &&
+        echo 'Directories Ready'
+      "
+    volumes:
+      - snid_api_runs_1:/snid_api_runs
+      - ngsf_api_runs_1:/ngsf_api_runs
+      - media_volume_1:/media
+      - spectra_volume:/spectra_volume
+      - deliveries_volume:/deliveries
+      - static_volume_1:/static
+      - ../test_data/sims:/test_data_src:ro #only for testing
+    healthcheck:
+      test: ["CMD-SHELL", "[ -d /static_volume/plots ] && [ -d /spectra_volume/test_data ]"]
+      interval: 10s
+      retries: 3
+      start_period: 5s
+    restart: "no"
+
 include:
   - ./submodules/shared_services/docker-compose.yml
   - ./submodules/tides_pipe/docker-compose.yaml
