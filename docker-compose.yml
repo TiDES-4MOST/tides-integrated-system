@@ -10,6 +10,7 @@ services:
         mkdir -pv /static/plots &&
         echo 'Copying test data, if availible' &&
         cp -ru /test_data_src/* /spectra_volume/test_data/sims/ 2>/dev/null || true &&
+        cp -ru /test_plots_src/* /static/plots/ 2>/dev/null || true &&
         echo 'Directories Ready'
       "
     volumes:
@@ -20,6 +21,7 @@ services:
       - deliveries_volume:/deliveries
       - static_volume_1:/static
       - ../test_data/sims:/test_data_src:ro #only for testing
+      - ../test_data/plots:/test_plots_src:ro #only for testing
     healthcheck:
       test: ["CMD-SHELL", "[ -d /static_volume/plots ] && [ -d /spectra_volume/test_data ]"]
       interval: 10s
