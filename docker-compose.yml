@@ -6,12 +6,13 @@ services:
     command: >
       sh -c "
         echo 'Checking and creating API workspace directories' &&
-        for dir in /snid_api_runs/workspaces /ngsf_api_runs/workspaces; do
+        for dir in /snid_api_runs/workspaces; do
           mkdir -pv $dir &&
           chown -R 1000:1000 $dir &&
           chmod -R 770 $dir
         done &&
         echo 'Checking other directories' &&
+        mkdir -pv /ngsf_api_runs/workspaces &&
         mkdir -pv /spectra_volume/test_data/sims &&
         mkdir -pv /static/plots &&
         echo 'Copying test data if available' &&
