@@ -5,10 +5,16 @@ services:
     image: busybox:latest
     command: >
       sh -c "
-        echo 'Checking volumes' &&
+        echo 'Checking and creating API workspace directories' &&
+        for dir in /snid_api_runs/workspaces /ngsf_api_runs/workspaces; do
+          mkdir -pv $dir &&
+          chown -R 1000:1000 $dir &&
+          chmod -R 770 $dir
+        done &&
+        echo 'Checking other directories' &&
         mkdir -pv /spectra_volume/test_data/sims &&
         mkdir -pv /static/plots &&
-        echo 'Copying test data, if availible' &&
+        echo 'Copying test data if available' &&
         cp -ru /test_data_src/* /spectra_volume/test_data/sims/ 2>/dev/null || true &&
         cp -ru /test_plots_src/* /static/plots/ 2>/dev/null || true &&
         echo 'Directories Ready'
