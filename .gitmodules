@@ -1,7 +1,7 @@
 [submodule "submodules/shared_services"]
 	path = submodules/shared_services
 	url = git@github.com:TiDES-4MOST/tides-shared-services.git
-	branch = dev
+	branch = main
 [submodule "submodules/tides_pipe"]
 	path = submodules/tides_pipe
 	url = git@github.com:TiDES-4MOST/tides_pipe.git
