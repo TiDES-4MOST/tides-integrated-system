@@ -17,20 +17,37 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Update submodules (main)
+      - name: Configure Git user
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          # Also configure all submodules
+          git submodule foreach --recursive '
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
+          '
+
+      - name: Update submodules and push main
+        run: |
+          git checkout main
           git submodule update --remote --merge
           git add submodules
-          git commit -m "Update submodules (main)" || echo "No changes"
-          git push origin main
+          if ! git diff --cached --quiet; then
+            git commit -m "Update submodules (main)"
+            git push origin main
+          else
+            echo "No changes in main submodules"
+          fi
 
-      - name: Update submodules (dev)
+      - name: Update submodules and push dev
         run: |
           git fetch origin dev
           git checkout dev
           git submodule update --remote --merge
           git add submodules
-          git commit -m "Update submodules (dev)" || echo "No changes"
-          git push origin dev
+          if ! git diff --cached --quiet; then
+            git commit -m "Update submodules (dev)"
+            git push origin dev
+          else
+            echo "No changes in dev submodules"
+          fi

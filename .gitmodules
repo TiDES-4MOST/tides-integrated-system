@@ -9,4 +9,5 @@
 [submodule "submodules/tidestom"]
 	path = submodules/tidestom
 	url = git@github.com:TiDES-4MOST/tidestom.git
-	branch = hack-dev-chris
+	branch = hack-dev
+
