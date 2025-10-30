@@ -1,4 +1,41 @@
 name: tides-stack
+
+services:
+  volume-init:
+    image: busybox:latest
+    command: >
+      sh -c "
+        echo 'Checking and creating API workspace directories' &&
+        for dir in /snid_api_runs/workspaces; do
+          mkdir -pv $dir &&
+          chown -R 1000:1000 $dir &&
+          chmod -R 770 $dir
+        done &&
+        echo 'Checking other directories' &&
+        mkdir -pv /ngsf_api_runs/workspaces &&
+        mkdir -pv /spectra_volume/test_data/sims &&
+        mkdir -pv /static/plots &&
+        echo 'Copying test data if available' &&
+        cp -ru /test_data_src/* /spectra_volume/test_data/sims/ 2>/dev/null || true &&
+        cp -ru /test_plots_src/* /static/plots/ 2>/dev/null || true &&
+        echo 'Directories Ready'
+      "
+    volumes:
+      - snid_api_runs_1:/snid_api_runs
+      - ngsf_api_runs_1:/ngsf_api_runs
+      - media_volume_1:/media
+      - spectra_volume:/spectra_volume
+      - deliveries_volume:/deliveries
+      - static_volume_1:/static
+      - ../test_data/sims:/test_data_src:ro #only for testing
+      - ../test_data/plots:/test_plots_src:ro #only for testing
+    healthcheck:
+      test: ["CMD-SHELL", "[ -d /static_volume/plots ] && [ -d /spectra_volume/test_data ]"]
+      interval: 10s
+      retries: 3
+      start_period: 5s
+    restart: "no"
+
 include:
   - ./submodules/shared_services/docker-compose.yml
   - ./submodules/tides_pipe/docker-compose.yaml
@@ -10,6 +47,12 @@ volumes:
   ngsf_api_runs_1:
     #external: true
   media_volume_1:
+    #external: true
+  spectra_volume:
+    #external: true
+  deliveries_volume:
+    #external: true
+  static_volume_1:
     #external: true
 
 networks:
